@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Event delegation</title>
+</head>
+<body>
+<div id="parent">
+    <button id="ok">ok</button>
+    <button id="cancel">Cancel</button>
+</div>
+<script>
+    document.getElementById('parent').addEventListener('click', function (event) {
+        var button = event.target;
+
+        // 根據被點擊的按鈕不同，做不同的事情
+        switch (button.id) {
+            case 'ok':
+                console.log('OK!');
+                break;
+            case 'cancel':
+                console.log('Cancel');
+                break;
+            default:
+                new Error('Unexpected button ID');
+        }
+    });
+</script>
+</body>
+</html>
