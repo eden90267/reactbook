@@ -159,3 +159,85 @@ React.DOM.h1(
 - 安裝、設置、並且使用React程式庫(只需要兩個<script>標籤)
 - 在DOM當中選擇特定位置渲染你的React元件(e.g. `ReactDOM.render(reactWhat, domWhere)`)
 - 使用內建的元件，這些是一般DOM元素的包裏器(e.g. `React.DOM.div(attributes, children)`)
+
+# chap02：元件的生命
+
+現在知道如何使用現成的DOM元件，現在就來練習如何建立自己的元件。
+
+## 最低限度
+
+建立新元件的API：
+
+```
+var MyComponent = React.createClass({
+  /* specs */
+})
+```
+
+"specs"是JavaScript物件，包含一個名為`render()`的必要方法，以及一些選用的方法與特性，最基本例子：
+
+```
+var Component = React.creatClass({
+  render: function() {
+    return React.DOM.span(null, "I'm so custom");
+  }
+});
+```
+
+唯一需要實作的就是`render()`方法，這個方法**必須回傳React元件**。
+
+在應用程式中使用你的元件就類似使用DOM元件
+
+```
+ReactDOM.render(
+  React.createElement(Component),
+  document.getElementById("app")
+);
+```
+
+`React.createElement()`是為你的元件建立「實例」(instance)的一個方法。如果要建立數個實例，還有另一個方法是利用工廠(factory)：
+
+```
+var ComponentFactory = React.createFactory(Component);
+
+ReactDOM.render(
+    ComponentFactory(),
+    document.getElementById("app")
+);
+```
+
+你已經知道`React.DOM.*`方法實際上只是`React.createElement()`的方便包裏器。換言之，可這樣操作DOM元件：
+
+```
+ReactDOM.render(
+    React.createElement("span", null, "Hello"),
+    document.getElementById("app")
+);
+```
+
+如你所見，DOM元素以字串的方式被定義，而不是JavaScript函式(如自訂元件的案例)。
+
+## 特性
+
+你的元件可以接受特性並且渲染它們，或根據特性的值產生不同行為。所有特性可透過this.props物件來存取：
+
+```
+var Component = React.createClass({
+    render: function() {
+        return React.DOM.span(null, "My name is " + this.props.name);
+    }
+});
+
+ReactDOM.render(
+    React.createElement(Component, {
+        name: "Eden",
+    }),
+    document.getElementById("app")
+);
+```
+
+※ 把`this.props`想成是唯讀的。特性可用來將組態從父元件傳遞到子元件(以及從子元件到父元件)。如果你覺得很想要設定this.props的特性，就使用額外的變數，或改用元件之規格物件的特性(如this.thing，而非this.props.thing)。事實上ECMAScript5瀏覽器中，你無法改變this.props，因為：
+
+```
+> Object.isFrozen(this.props) === true; // true
+```
