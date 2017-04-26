@@ -948,3 +948,236 @@ function shallowCompare(instance, nextProps, nextState) {
   return !shallowEqual(instance.props, nextProps) || !shallowEqual(instance.state, nextState);
 }
 ```
+
+# chap03：Excel：精心設計的表格元件
+
+建立資料表，它讓你編輯資料表內容，排序及搜尋(過濾)資料，並將它們匯出為可下載的檔案。
+
+## 資料優先
+
+表格元件(何不乾脆稱呼Excel)，應該接受標題陣列與資料陣列，以下是史上最暢銷書籍組成清單：
+
+```
+var headers = [
+    "Book", "Author", "Language", "Published", "Sales"
+];
+
+var data = [
+    ["The Lord of the Rings", "J. R. R. Tolkien", "English", "1954–1955", "150 million"],
+    ["Le Petit Prince (The Little Prince)", "Antoine de Saint-Exupéry", "French", "1943", "140 million"],
+    ["Harry Potter and the Philosopher's Stone", "J. K. Rowling", "English", "1997", "107 million"],
+    ["And Then There Were None", "Agatha Christie", "English", "1939", "100 million"],
+    ["Dream of the Red Chamber", "Cao Xueqin", "Chinese", "1754–1791", "100 million"],
+    ["The Hobbit", "J. R. R. Tolkien", "English", "1937", "100 million"],
+    ["She: A History of Adventure", "H. Rider Haggard", "English", "1887", "100 million"],
+];
+```
+
+## 表格標題迴圈
+
+首先，踏出第一步，僅顯示標題實作：
+
+```
+var Excel = React.createClass({
+    render: function () {
+        return (
+            React.DOM.table(null,
+                React.DOM.thead(null,
+                    React.DOM.tr(null,
+                        this.props.headers.map(function (title) {
+                            return React.DOM.th(null, title);
+                        })
+                    )
+                )
+            )
+        );
+    }
+});
+```
+
+以下為用法：
+
+```
+ReactDOM.render(
+    React.createElement(Excel, {
+        headers: headers,
+        initialData: data
+    }),
+    document.getElementById("app")
+);
+```
+
+陣列的map()方法，這方法被用來回傳一序列子元件。在此，map()方法擷取各元素，並將它傳遞給回呼函式，回呼函式建立新的<th>元件，並且回傳它。
+
+這是React之所以美妙的一部份原因 ── 你使用JavaScript建立UI，而且JavaScript的所有威力皆聽你差遣，迴圈與條件語法照常使用，你不需學習另一種「樣板」語言或語法，就能建構UI。
+
+※ 你能以單一陣列引數的方式將所有子元素傳遞給元件，代替你目前看到的作法 ─ 將每個子元素作為個別的引數來傳遞。總之，兩個方法皆可行：
+
+```
+// 獨立引數
+React.DOM.ul(
+  null,
+  React.DOM.li(null, "one"),
+  React.DOM.li(null, "two")
+);
+// 陣列
+React.DOM.ul(
+  null,
+  [
+    React.DOM.li(null, "one"),
+    React.DOM.li(null, "two")
+  ]
+);
+```
+
+## 偵錯控制台的警告
+
+```
+react.js:19368 Warning: Each child in an array or iterator should have a unique "key" prop. Check the render method of `Constructor`. See https://fb.me/react-warning-keys for more information.
+```
+
+陣列或迭代器裡的每個子元素都應具有獨特的"key"特性。在現實生活中，可能會有許多元件建立<tr>元素。Excel只是React世界以外被指定某個React元件的變數，所以React無法理解這個元件名稱，然而，你可透過宣告displayName特性，幫忙處理這件事：
+
+```
+var Excel = React.createClass({
+    displayName: 'Excel',
+    render: function () {
+        // ...
+    }
+});
+```
+
+現在，React可以識別問題所在，並警告你
+
+```
+Warning: Each child in an array or iterator should have a unique "key" prop. Check the render method of `Excel`. See https://fb.me/react-warning-keys for more information.
+```
+
+為了修復它，請根據警告內容來處理問題，現在，你知道究竟是哪個render()惹的禍：
+
+```
+this.props.headers.map(function (title, idx) {
+    return React.DOM.th({key: idx}, title);
+})
+```
+
+為把key特性提供給React，你可簡單使用陣列元素的索引(idx)，這些鍵只需要在這陣列裡維持獨一無二，不必在整個React應用程式中保持唯一。
+
+※ 使用JSX，你不需要定義displayName這個特性，因為這名稱會自動被延生出來。
+
+## 添加<td>內容
+
+```
+this.state.data.map(function (row, idx) {
+    return (
+        React.DOM.tr(null,
+            row.map(function (cell, idx) {
+                return React.DOM.td(null, cell)
+            })
+        )
+    );
+})
+```
+
+還有一件事要考慮，data變數的內容，會從元件呼叫者傳遞資料，但稍後，表格會持續存在，資料會改變，因使用者理應能排序、編輯等，換言之，元件狀態會變化，所以使用`this.state.data`追蹤這些改變，並利用this.props.initialData，讓呼叫者初始化元件。
+
+```
+getInitialState: function () {
+    return {data: this.props.initialData}
+},
+render: function () {
+    return (
+        React.DOM.table(null,
+            React.DOM.thead(null,
+                React.DOM.tr(null,
+                    this.props.headers.map(function (title, idx) {
+                        return React.DOM.th({key: idx}, title);
+                    })
+                )
+            ),
+            React.DOM.tbody(null,
+                this.state.data.map(function (row, idx) {
+                    return (
+                        React.DOM.tr({key: idx},
+                            row.map(function (cell, idx) {
+                                return React.DOM.td({key: idx}, cell)
+                            })
+                        )
+                    );
+                })
+            )
+        )
+    );
+}
+```
+
+![渲染整個表格](./render_table.png)
+
+可看到，重複的`{key: idx}`為元件陣列的每個元素提供獨一無二的值(react DevTools)，然而，所有的.map()迴圈從索引0開始，這沒問題，因這些鍵只需在當前的迴圈中獨一無二，而非在整個應用程式中都是唯一。
+
+接下來增加PropTypes特性，這項機制既可處理資料驗證，又能作為元件說明，讓我們盡可能保持明確。React.PropTypes提供陣列驗證器，並可進一步搭配arrayOf，藉此，你能指定陣列元素的型別：
+
+```
+propTypes: {
+    headers: React.PropTypes.arrayOf(
+        React.PropTypes.string
+    ),
+    initialData: React.PropTypes.arrayOf(
+        React.PropTypes.arrayOf(
+            React.PropTypes.string
+        )
+    ),
+},
+```
+
+### 如何改善元件?
+
+在一般Excel，只容許字串資料恐怕太過嚴苛，就目前練習而言，你大可允許更多資料類型(React.PropTypes.any)，並根據型別以不同方式渲染(數字靠右對齊)。
+
+## 排序
+
+這對React來說是輕而易舉的事情，事實上，這也是React的亮點之一，你只需要排序資料，所有UI更新自動被處理。
+
+首先，將點擊處理器添加到標題列：
+
+```
+React.DOM.table(null,
+    React.DOM.thead({onClick: this._sort},
+        React.DOM.tr(null,
+            // ...
+```
+
+現在，來實作_sort函式，你必須知道要根據哪一欄來排序，這項資訊可透過事件目標(event target，即表格標題`<th>`)的cellIndex特性輕易取得：
+
+```
+var column = e.target.cellIndex;
+```
+
+另外，你還需要排序資料副本，否則，如果使用陣列sort()方法，它會直接修改陣列，這表示this.state.data.sort()將修改this.state，如你所知，this.state不應該直接修改，只能透過setState()來處理。
+
+```
+// 複製資料
+var data = this.state.data.slice(); // 或者，在ES6中，Array.from(this.state.data)
+```
+
+現在，實際的排序透過回呼sort()方法來完成：
+
+```
+data.sort(function (a, b) {
+    return a[column] > b[column] ? 1 : -1;
+});
+```
+
+最後，這一行使用排序過的新資料設定狀態：
+
+```
+this.setState({
+    sort: data,
+});
+```
+
+就是這樣，你完全不必觸碰UI渲染，在render()方法中，你已經一勞永逸定義元件在給定資料下看起來是什麼模樣，當資料改變時，UI也跟著改變。
+
+### 如何改善元件
+
+可根據需要，更花俏、更細緻地解析內容，看看那些值是否為數字，有無量度單位，等等。
