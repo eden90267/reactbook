@@ -1181,3 +1181,402 @@ this.setState({
 ### 如何改善元件
 
 可根據需要，更花俏、更細緻地解析內容，看看那些值是否為數字，有無量度單位，等等。
+
+## 排序UI的提示
+
+目前哪一欄排序並不清楚，讓我們依據「排序欄」更新UI，顯示箭號，並且實作降冪排序。
+
+為追蹤狀態，需兩個新特性：
+
+- this.state.sortby
+
+    當前排序欄的索引
+
+- this.state.descending
+
+    決定升冪或降冪排序的布林值
+    
+```
+getInitialState: function () {
+    return {
+        data: this.props.initialData,
+        sortby: null,
+        descending: false
+    }
+},
+```
+
+在_sort排序中，你必須弄清楚要以何種方式排序，預設是升冪，除非新的欄索引跟當前排序欄相同，且原有排序並非是降冪。
+
+```
+var descending = this.state.sortby === column && !this.state.descending;
+```
+排序的回呼做調整：
+
+```
+data.sort(function (a, b) {
+    return descending
+        ? (a[column] < b[column] ? 1 : -1)
+        : (a[column] > b[column] ? 1 : -1);
+});
+```
+
+最後，必須設定新狀態：
+
+```
+this.setState({
+    data: data,
+    sortby: column,
+    descending: descending
+});
+```
+
+剩下的就只是更新render()函式：
+
+```
+this.props.headers.map(function (title, idx) {
+    if (this.state.sortby === idx) {
+        title += this.state.descending ? ' \u2191' : ' \u2193'
+    }
+    return React.DOM.th({key: idx}, title);
+}, this)
+```
+
+現在，排序功能完成。
+
+## 編輯資料
+
+解決方案之一可能像這樣：
+
+1. 雙擊儲存格，Excel判斷哪個儲存格被點擊，並且將它的內容從簡單文字變成預先填好內容的輸入欄位
+2. 編輯內容
+3. 敲擊Enter，輸入欄位消失，表格被更新為新文字
+
+### 可編輯的資料儲存格
+
+要做的第一件事情就是建立簡單的事件處理器，在雙擊時，元件「記住」選定的資料儲存格。
+
+```
+React.DOM.tbody({onDoubleClick: this._showEditor}, ...)
+```
+
+看看`_showEditor`：
+
+```
+_showEditor: function (e) {
+    this.setState({
+        edit: {
+            row: parseInt(e.target.dataset.row, 10),
+            cell: e.target.cellIndex,
+        }
+    });
+},
+```
+
+這裡發生什麼事？
+
+- 這個函式設定this.state的edit特性，這個特性在沒有編輯動作發生時為null，接著變成具有row與cell特性的物件，內容被編輯之儲存格的資料列索引和儲存格索引。
+- 儲存格索引，使用與之前相同的e.target.cellIndex，e.target是被雙擊的`<td>`。
+- DOM世界沒有免費的rowIndex，你必須透過data-屬性來得到，每個儲存格應具有data-row屬性，內含資料列索引，可利用parseInt()從中取得索引值。
+
+增加edit特性，並在getInitialState()初始化它。
+
+```
+getInitialState: function () {
+    return {
+        data: this.props.initialData,
+        sortby: null,
+        descending: false,
+        edit: null, // {row: index, cell: index}
+    };
+},
+```
+
+你需要data-row特性紀錄資料列索引：
+
+```
+React.DOM.tbody({onDoubleClick: this._showEditor},
+    this.state.data.map(function (row, rowidx) {
+        return (
+            React.DOM.tr({key: rowidx},
+                row.map(function (cell, idx) {
+                    var content = cell;
+
+                    // 待辦事項 - 假如`idx`與`rowidx`匹配要編輯的儲存格，
+                    // 就將「content」轉為輸入欄位
+                    // 否則，就顯示文字內容
+
+                    return React.DOM.td({
+                        key: idx,
+                        'data-row': rowidx
+                    }, content)
+                }, this)
+            )
+        );
+    }, this)
+)
+```
+
+最後，必須做「待辦事項」所說的事情。需要時產生輸入欄位，整個render()函式因為setState()呼叫設定edit特性而再次被調用，React重新渲染表格，讓你有機會更新被雙擊的儲存格。
+
+### 輸入欄位儲存格
+
+首先，請記住編輯狀態：
+
+```
+var edit = this.state.edit;
+```
+
+檢查edit是否被設定，如果是的話，看看這是否為正在被編輯的儲存格：
+
+```
+if (edit && edit.row === rowidx && edit.cell === idx) {
+    
+}
+```
+
+如果是目標儲存格，讓我們產生表單，以及包含儲存格內容的輸入欄位：
+
+```
+content = React.DOM.form({onSubmit: this._save},
+    React.DOM.input({
+        type: 'text',
+        defaultValue: content
+    })
+);
+```
+
+這個表單包含單一輸入欄位，預先填上儲存格的文字，當表單被提交時，它會被傳送給私有的_save()方法。
+
+### 儲存
+
+使用者完成輸入並提交表單(透過Enter鍵)，儲存內容變更：
+
+```
+_save: function (e) {
+    e.preventDefault();
+    // 進行儲存
+},
+```
+
+阻止預設行為(所以頁面不重載)，你必須取得輸入欄位的參考：
+
+```
+var input = e.target.fitstChild;
+```
+
+複製clone資料，因此，你不直接操作this.state：
+
+```
+var data = this.state.data.slice();
+```
+
+根據新值以及state.edit的資料列索引與儲存格索引來更新資料片段：
+
+```
+data[this.state.edit.row][this.state.edit.cell] = input.value;
+```
+
+最後，設定狀態，這會促使UI重新渲染：
+
+```
+this.setState({
+    edit: null, // 編輯完畢
+    data: data,
+});
+```
+
+### 虛擬DOM的差異
+
+一旦使用新資料執行setState()，React呼叫元件的render()方法，UI進行更新，只因為一個儲存格的內容就渲染整個表格，看起來不是很有效率，但事實上，React只更新一個儲存格。
+
+可打開瀏覽器開發工具，檢視DOM樹狀結構的哪些部分更新。開發工具特別強調DOM的改變之處。
+
+幕後，React呼叫render()方法，建立所需要之DOM結果的輕量級樹狀結構表示，這被稱作虛擬DOM樹狀結構，當render()方法再次被呼叫時，React比較前後的虛擬樹狀結構，並計算其間的差異，根據這項差異，React判斷將此變更落實到瀏覽器DOM的最基本DOM操作(例如，appendChild()、textContent等等)。
+
+透過計算最小一組變更，並且以批次方式處理DOM操作，React輕輕「觸碰」DOM，因為，眾所週知，DOM操作相對緩慢(相較於單純JavaScript操作，函式呼叫，等等)，並且經常形成豐富網路應用程式(rich web application)的渲染效能瓶頸。
+
+當論及效能與更新UI，React提供你充分的支援：
+
+- 盡可能小幅度操作DOM
+- 針對使用者互動使用事件委託機制
+
+## 搜尋
+
+規劃如下：
+
+- 增加按鈕，打開或關閉新功能
+- 如果搜尋功能被開啟，就增加一列輸入欄位，其中，每一個輸入欄位對應每一欄的搜尋
+- 隨使用者將資料鍵進輸入欄位，過濾state.data陣列，僅僅顯示匹配的內容
+
+### 狀態與UI
+
+首先，將search特性添加到this.state物件，負責紀錄搜尋功能是否打開：
+
+```
+getInitialState: function () {
+    return {
+        data: this.props.initialData,
+        sortby: null,
+        descending: false,
+        edit: null, // {row: index, cell: index}
+        search: false,
+    };
+},
+```
+
+接下來，更新UI，為讓事情好管理，將render()函式分解成一個個較小的專責區塊。
+
+```
+render: function () {
+    return (
+        React.DOM.div(null,
+            this._renderToolbar(),
+            this._renderTable())
+    );
+},
+
+_renderToolbar: function () {
+    // 待辦事項
+},
+_renderTable: function () {
+    // 跟先前稱作`render()`的函式一樣
+}
+```
+
+現在，工具欄只不過是一個按鈕：
+
+```
+_renderToolbar: function () {
+    return React.DOM.button(
+        {
+            onClick: this._toggleSearch,
+            className: 'toolbar',
+        },
+        'search'
+    )
+},
+```
+
+如果搜尋按鈕開啟，你需一個填滿輸入欄位的新表格列，就讓`_renderSearch()`函式打理這件事：
+
+```
+_renderSearch: function () {
+    if (!this.state.search) {
+        return null;
+    }
+    return (
+        React.DOM.tr({onChange: this._search},
+            this.props.headers.map(function (_ignore, idx) {
+                return React.DOM.td({key: idx},
+                    React.DOM.input({
+                        type: 'text',
+                        'data-idx': idx,
+                    })
+                );
+            })
+        )
+    );
+},
+```
+
+如果搜尋功能未開啟，這個函式就不必渲染任何東西。下面是`_renderTable()`需要做的事：
+
+```
+React.DOM.tbody({onDoubleClick: this._showEditor},
+    this._renderSearch(),
+    this.state.data.map(function (row, rowidx) {
+        // ...
+```
+
+搜尋輸入欄位列只是在主要資料迴圈之前的另一個子節點，當`_renderSearch()`回傳null，React只是不渲染額外的子節點，而直接處理資料表格。
+
+以上，所有UI更新已經完成。
+
+### 過濾內容
+
+搜尋之前，你必須複製資料，以免永遠失去它。這允許使用者回到完整的表格，或改變搜尋字串，以便比對出不同的結果，讓我們把這副本(實際上是參考)稱作_preSearchData：
+
+```
+var Excel = React.createClass({
+    // ...
+    
+    _preSearchData: null,
+    
+    // ...
+});
+```
+
+當使用者點擊"search"(搜尋)按鈕時，_toggleSearch()函式被觸發，這個函式的任務是關閉搜尋功能：
+
+- `this.state.search`設定true或false。
+- 啟用搜尋時，「記住」舊資料。
+- 停用搜尋時，回復舊資料。
+
+```
+_toggleSearch: function () {
+    if (this.state.search) {
+        this.setState({
+            data: this._preSearchData,
+            search: false,
+        });
+        this._preSearchData = null;
+    } else {
+        this._preSearchData = this.state.data;
+        this.setState({
+            search: true,
+        });
+    }
+},
+```
+
+最後，實作_search()函式，每當搜尋列有變更(亦即，使用者將資訊鍵進輸入欄位之一)，這個函式隨即被呼叫：
+
+```
+_search: function (e) {
+    var needle = e.target.value.toLowerCase();
+    if (!needle) { // 搜尋字串被刪除
+        this.setState({data: this._preSearchData})
+        return;
+    }
+    var idx = e.target.dataset.idx;
+    var searchdata = this._preSearchData.filter(function(row) {
+        return row[idx].toString().toLowerCase().indexOf(needle) > -1;
+    });
+    this.setState({data:searchdata});
+},
+```
+
+你從變更事件的目標(即輸入欄位)取得搜尋字串：
+
+```
+var needle = e.target.value.toLowerCase();
+```
+
+如果沒有搜尋字串(使用者刪除鍵入內容)，該函式會使用原有的快取資料，且這些資料會變成新狀態：
+
+```
+if (!needle) { // 搜尋字串被刪除
+    this.setState({data: this._preSearchData})
+    return;
+}
+```
+
+如果有搜尋字串，就過濾原始資料，並將結果設為資料的新狀態：
+
+```
+var idx = e.target.dataset.idx;
+var searchdata = this._preSearchData.filter(function(row) {
+    return row[idx].toString().toLowerCase().indexOf(needle) > -1;
+});
+this.setState({data:searchdata});
+```
+
+### 如何改進搜尋？
+
+切換搜尋按鈕的標籤，例如：開啟時，它會說“Done searching”。
+
+實作包含多個輸入方框的附加搜尋(additive search)，亦即，過濾已經過濾的資料。
+
+## 即時重播
+
