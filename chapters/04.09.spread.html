@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JSX spread</title>
+</head>
+<body>
+<div id="app"></div>
+<script src="react/build/react.js"></script>
+<script src="react/build/react-dom.js"></script>
+<script src="babel/browser.js"></script>
+<script type="text/babel">
+    var FancyLink = React.createClass({
+        render: function () {
+
+            var {size, ...attribs} = this.props;
+
+            switch (size) {
+                // 基於`size`特性做一些事情
+            }
+
+            return <a {...attribs}>{this.props.children}</a>
+        }
+    });
+
+    ReactDOM.render(
+            <FancyLink
+                    href="http://example.org"
+                    style={ {color: "red"} }
+                    target="_blank"
+                    size="medium">
+                Hello
+            </FancyLink>,
+        document.getElementById("app")
+    );
+</script>
+</body>
+</html>

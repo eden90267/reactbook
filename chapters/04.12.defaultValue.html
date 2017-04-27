@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Temp</title>
+    <title>defaultValue</title>
 </head>
 <body>
 <div id="app"></div>
@@ -10,7 +10,14 @@
 <script src="react/build/react-dom.js"></script>
 <script src="babel/browser.js"></script>
 <script type="text/babel">
-
+function log(evt) {
+    console.log("value: ", evt.target.value);
+    console.log("defaultValue: ", evt.target.defaultValue);
+}
+ReactDOM.render(
+    <input defaultValue="hello" onChange={log}/>,
+    document.getElementById("app")
+);
 </script>
 </body>
 </html>
