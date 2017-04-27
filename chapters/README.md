@@ -1694,3 +1694,250 @@ _download: function (format, ev) {
     ev.target.download = 'data.' + format;
 },
 ```
+
+# chap04：JSX
+
+目前為止，你已用過如何在render()中呼叫React.createElement()與React.DOM.*函式家族來定義你的UI，使用這麼多函式呼叫有個不變的地方：不容易配對所有的圓括號和大括號，解決方法：JSX。
+
+JSX完全是選用的，然而，你可能一試成主顧，再難偏安於函式呼叫。
+
+JSX全文可能是JacaScriptXML or JavaScript Syntax eXtension(JavaScript語法擴展)。
+
+## Hello JSX
+
+```
+ReactDOM.render(
+    <h1 id="my-heading">
+        <span><em>Hell</em>o</span> world!
+    </h1>,
+    document.getElementById("app")
+);
+```
+
+這種語法看起來就像HTML，唯一要注意的是，因為它不是有效的JavaScript語法，無法在browser中順利執行，必須將這段程式碼轉換或轉譯(transpile)成browser可以執行的單純JavaScript。
+
+## 轉譯JSX
+
+轉譯(transpilation)就是重寫原始碼，讓它達成相同結果的過程，但使用較老舊之browser可以理解的語法，跟使用polyfill(自動補全函式庫)不一樣。
+
+polyfill是純JavaScript領域的解決方案，在增加新方法到既有物件或實作新物件時，這是很好的解法，然而，在新語法導入到語言，這種做法有欠周全。在不支援新語法(e.g. class)且無法處理polyfill的瀏覽器只是拋出解析錯誤的無效語法，因此，新語法需要編譯(compilation)或轉譯(transpilation)步驟，在被提供給瀏覽器之前，先進行轉換。
+
+## Babel
+
+Babel(前身為6to5)是支援最新JavaScript功能與JSX的開源碼轉譯器，它是使用JSX的基礎前提。現在先保持單純及輕量化，在客戶端進行轉譯工作(僅適用原型，教學，與探索，就效能而言，不應用於現實應用程式)。
+
+為進行瀏覽器內部(客戶端)的轉換，你需要名為browser.js的檔案，Babel從第六版開始不再提供它，但總可找到最後的有效副本。
+
+```
+$ cd chapters/
+$ mkdir babel
+$ cd babel/
+$ curl https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.js > browser.js
+```
+
+## 客戶端
+
+必須在頁面上做兩件事，才能讓JSX順利運作：
+
+- 引入browser.js，能轉譯JSX的指令搞
+- 標記使用JSX的指令搞標籤，讓Babel知道它有工作要做
+
+```
+<script src="babel/browser.js"></script>
+<script type="text/babel">
+ReactDOM.render(
+    <h1 id="my-heading">
+        <span><em>Hell</em>o</span> world!
+    </h1>,
+    document.getElementById("app")
+);
+</script>
+```
+
+## 關於JSX轉換
+
+- Babel
+- HTML-to-JSX轉換器
+
+!["Hello World"轉換](./trans_Hello_World.png)
+
+## JSX裡的JavaScript
+
+在建立使用者介面時，你經常需使用變數、條件、與迴圈，代替使用其他模板語法(templating syntax)，JSX讓你在標記語言中撰寫JavaScript，你只需要將JavaScript程式碼包裏在大括號內。
+
+```
+var Excel = React.createClass({
+
+    /* 略 ... */
+
+    render: function () {
+        var state = this.state;
+        return (
+                <table>
+                    <thead onClick={this._sort}>
+                    <tr>
+                        {this.props.headers.map(function (title, idx) {
+                            if (state.sortby === idx) {
+                                title += state.descending ? ' \u2191' : ' \u2193'
+                            }
+                            return <th key={idx}>{title}</th>
+                        })}
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {state.data.map(function (row, idx) {
+                        return <tr key={idx}>
+                            {row.map(function (cell, idx) {
+                                return <td key={idx}>{cell}</td>
+                            })}
+                        </tr>
+                    })}
+                    </tbody>
+                </table>
+        );
+    }
+});
+```
+
+如你所見，要使用變數，你將它們包在大括號中：
+
+```
+<th key={idx}>{title}</th>
+```
+
+針對迴圈，你也可以將map()呼叫包在大括號中：
+
+```
+<tr key={idx}>
+    {row.map(function (cell, idx) {
+        return <td key={idx}>{cell}</td>
+    })}
+</tr>
+```
+
+你可根據需要的深度，以嵌套的方式，在JSX裡的JavaScript中安排JSX。你可把JSX想成JavaScript(稍加轉換之後)，然而，這當中伴隨熟悉的HTML語法，即使團隊成員不像你本身那麼精通JavaScript，但至少知道HTML，那樣就可以撰寫JSX，他們不須學太多東西，就能夠使用變數與迴圈來建立包含**即時資料**的使用者介面。
+
+範例中，map()回呼有個if條件，因為是嵌套的條件，一點格式化工作有助於三元運算式的閱讀：
+
+```
+return <th key={idx}>{
+    state.sortby === idx
+        ? title
+        + (state.descending
+            ? ' \u2191'
+            : ' \u2193')
+        : title
+}</th>
+```
+
+※ 例子裏頭重複出現的title，可將它移除：
+
+```
+return <th key={idx}>{title}{
+    state.sortby === idx
+        ?
+        (state.descending
+            ? ' \u2191'
+            : ' \u2193')
+        : null
+}</th>
+```
+
+然而，在此情況下，你必須修改這個例子的排序函式。這個排序函式假設有人點擊`<th>`，並使用cellIndex釐清究竟是哪個`<th>`被點擊，然而，當你在JSX中使用相鄰的{}區塊時，你得到<span>標籤以區分兩者，換言之，`<th>{1}{2}</th>`轉變成DOM，就好像它是`<th><span>1</span><span>2</span></th>`。(v15板後變純文字了`<th>"1""2"</th>`)
+
+## JSX裡的空白
+
+JSX裡的空白類似HTML，但不全然：
+
+```
+<h1>
+  {1} plus {2} is {3}
+</h1>
+```
+
+...導致
+
+```
+<h1>
+  <span>1</span><span> plus </span><span>2</span><span> is </span><span>3</span>
+</h1>
+```
+
+(v15已非如此，為純字串了)
+
+然而在此範例中：
+
+```
+<h1>
+  {1}
+  plus
+  {2}
+  is
+  {3}
+</h1>
+```
+
+...最後會得到
+
+```
+<h1>
+  <span>1</span><span>plus</span><span>2</span><span>is</span><span>3</span>
+</h1>
+```
+
+所有空格均被裁掉，因此最終結果是"1plus2is3"。
+
+你總能在需要的地方使用{' '}(產生較多<span>標籤)增添空白，或將實字字串(literal string)添加到表達式並在當中增加空白：
+
+```
+<h1>
+  {/* 空格表達式 */}
+  {1}
+  {' '}plus{' '}
+  {2}
+  {' '}is{' '}
+  {3}
+</h1>
+
+<h1>
+  {/* 字串表達式結合空白 */}
+  {1}
+  {' plus '}
+  {2}
+  {' is '}
+  {3}
+</h1>
+```
+
+## JSX裡的註解
+
+因為包在{}裡的表達式只是JavaScript，你可使用/* comment */輕鬆添加多行註解，也可使用// comment增加單行註解，但必須確認該表達式的結尾}位在獨立一行，才不會被誤認為註解的一部分：
+
+```
+<h1>
+  {/* 多行註解 */}
+  {/*
+     多
+     行
+     註
+     解
+   */}
+  {
+    // 單行註解
+  }
+</h1>
+```
+
+`{// comment}`會無法運作，建議一致用多行註解。
+
+## HTML實體
+
+你可像這樣在JSX中使用HTML實體：
+
+```
+<h2>
+  More info &raquo;
+</h2>
+```
+
+這個範例產生「右向箭頭」。
