@@ -2254,7 +2254,7 @@ ReactDOM.render(
 
 ※ 這是你應該在自己的元件中使用的模式：如果你接受某個暗示它應該是最新資料的特性(例如：value、data)，就讓它保持當前狀態。如果沒有，就稱之為initialData，defaultValue或類似的東西，以便符合預期與直覺。
 
-### <textarea>的值
+### `<textarea>`的值
 
 為了讓文字輸入欄位一致，React版本的`<textarea>`接受value和defaultValue特性，讓value保持最新狀態，defaultValue保持原始狀態，如果你採取HTML風格，並使用textarea的子元素來定義值(不建議)，那會被看成好像是defaultValue。
 
@@ -2291,7 +2291,7 @@ ReactDOM.render(
 
 React會警告你正在使用舊式的`<textarea>`子元件設定值。
 
-### <select>的值
+### `<select>`的值
 
 使用HTML的`<select>`輸入元素時，你可利用`<option selected>`指定預選的項目，就像這樣：
 
@@ -2302,7 +2302,7 @@ React會警告你正在使用舊式的`<textarea>`子元件設定值。
 </select>
 ```
 
-在React中，你在<select>元素上指定value，甚至defaultValue：
+在React中，你在`<select>`元素上指定value，甚至defaultValue：
 
 ```
 <select value="move">
