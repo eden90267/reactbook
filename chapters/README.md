@@ -1580,3 +1580,117 @@ this.setState({data:searchdata});
 
 ## 即時重播
 
+給定相同資料(狀態與特性)，應用程式看起來會完全一樣(不管特定資料狀態前後發生什麼變更)。這提供給你很好的偵錯機會。
+
+想像某人使用應用程式遇到bug ── 它可點擊按鈕，報告錯誤，而不需耗費唇舌，解釋發生什麼事情，這個錯誤報告可以送回this.state和this.props的副本，而且你應該能重建確切的應用程式狀態，並看到視覺化的效果。
+
+"undo"(取消)可能是基於相同事實的另一項功能：在給定相同狀態與特性下，React將你的應用程式展示成相同模樣。undo實作很簡單：只須回到先前的狀態。
+
+再把想法往前延伸一點，讓我們紀錄Excel元件當中的每個狀態變更，然後重播它。
+
+就實作而言，只需添加_logSetState()方法，搜尋所有setState()呼叫，並將他們替換新函式呼叫。
+
+_logSetState需要做兩件事：紀錄新狀態，然後把它傳遞給setState()，以下是實作範例，你針對狀態進行深層複製，並將它附加到this._log：
+
+```
+_logSetState: function (newState) {
+    // 複製並且紀錄舊狀態
+    this._log.push(JSON.stringify(
+        this._log.length === 0 ? this.state : newState
+    ));
+    this.setState(newState);
+},
+```
+
+既然所有狀態都已被紀錄，讓我們重播它們。為觸發重播，我們增加捕捉鍵盤動作的簡單事件偵聽器，並呼叫_replay()函式：
+
+```
+componentDidMount: function() {
+    document.onkeydown = function (e) {
+        if (e.altKey && e.shiftKey && e.keyCode === 82) { // ALT + SHIFT + R(eplay)
+            this._replay();
+        }
+    }.bind(this);
+},
+```
+
+最後，讓我們添加一下_replay()方法：
+
+```
+_replay: function () {
+    if (this._log.length === 0) {
+        console.warn('No state to replay yet');
+        return;
+    }
+    var idx = -1;
+    var interval = setInterval(function () {
+        idx++;
+        if (idx === this._log.length - 1) {
+            clearInterval(interval);
+        }
+        this.setState(JSON.parse(this._log[idx]));
+    }.bind(this), 1000)
+},
+```
+
+### 如何改進重播
+
+實作取消/重做功能如何?`ALT+Z`後退一步，`ALT+SHIFT+Z`前進一步。
+
+### 替代的實作?
+
+有沒有其他做法可以實作重播/取消之類的功能，而不需改變所有setState()呼叫? 生命週期方法?
+
+## 下載表格資料
+
+只要抓取當前的this.state.data，並回傳它 ── 以JSON或CSV的格式。
+
+首先，添加新選項到工具列，使用HTML5，迫使`<a>`連結觸發檔案下載，所以按鈕是透過CSS偽裝的連結：
+
+```
+_renderToolbar: function () {
+    return React.DOM.div({className: 'toolbar'},
+        React.DOM.button(
+            {
+                onClick: this._toggleSearch,
+                className: 'toolbar',
+            },
+            'search'
+        ),
+        React.DOM.a(
+            {
+                onClick: this._download.bind(this, 'json'),
+                href: 'data.json'
+            },
+            'Export JSON'
+        ),
+        React.DOM.a(
+            {
+                onClick: this._download.bind(this, 'csv'),
+                href: 'data.csv'
+            },
+            'Export CSV'
+        )
+    );
+},
+```
+
+現在，來處理_download()。JSON匯出相當簡單，CSV則需要多花點工夫，基本上，就是以迴圈繞行所有資料列，以及資料列當中所有儲存格，產生長字串，一旦完成，這個函式透過download屬性以及window.URL建立的href blob而啟動下載：
+
+```
+_download: function (format, ev) {
+    var contents = format === 'json'
+        ? JSON.stringify(this.state.data)
+        : this.state.data.reduce(function (result, row) {
+            return result +
+                row.reduce(function (rowresult, cell, idx) {
+                    return rowresult + '"' + cell.replace(/"/g, '""') + '"' + (idx < row.length - 1 ? ',' : '');
+                }, '') + '\n';
+        }, '');
+
+    var URL = window.URL || window.webkitURL;
+    var blob = new Blob([contents], {type: 'text/' + format});
+    ev.target.href = URL.createObjectURL(blob);
+    ev.target.download = 'data.' + format;
+},
+```
