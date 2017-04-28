@@ -39,6 +39,13 @@
     background: #3cb0fd;
     background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
     text-decoration: none;
+}.Logo {
+    background: purple url('images/whinepad-logo.png');
+    background-size: cover;
+    display: inline-block;
+    height: 60px;
+    vertical-align: middle;
+    width: 100px;
 }html {
     background: white;
     font: 16px Arial;
