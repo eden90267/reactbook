@@ -3,27 +3,27 @@
  */
 'use strict';
 
+import Logo from './components/Logo';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import Whinepad from './components/Whinepad';
+import schema from './schema';
 
-import Logo from './components/Logo';
-import Excel from './components/Excel';
+let data = JSON.parse(localStorage.getItem('data'));
 
-
-var headers = localStorage.getItem('headers');
-var data = localStorage.getItem('data');
-
-if (!headers) {
-    headers = ['Title', 'Year', 'Rating', 'Comments'];
-    data = [['Test', '2015', '3', 'meh']];
+// 預設範例資料，例如，從schema讀取
+if (!data) {
+    data = {};
+    schema.forEach(item => data[item.id] = item.sample);
+    data = [data];
 }
 
 ReactDOM.render(
     <div>
-        <h1>
+        <div className="app-header">
             <Logo/> Welcome to Whinepad!
-        </h1>
-        <Excel headers={headers} initialData={data}/>
+        </div>
+        <Whinepad schema={schema} initialData={data}/>
     </div>,
     document.getElementById('pad')
 );

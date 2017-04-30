@@ -188,9 +188,13 @@ var Dialog = function (_Component) {
                     _react2.default.createElement(
                         'div',
                         { className: 'DialogFooter' },
-                        this.props.hasCancel ? _react2.default.createElement('span', {
-                            className: 'DialogDismiss',
-                            onClick: this.props.onAction.bind(this, 'dismiss') }) : null,
+                        this.props.hasCancel ? _react2.default.createElement(
+                            'span',
+                            {
+                                className: 'DialogDismiss',
+                                onClick: this.props.onAction.bind(this, 'dismiss') },
+                            'Cancel'
+                        ) : null,
                         _react2.default.createElement(
                             _Button2.default,
                             {

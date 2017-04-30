@@ -23,7 +23,7 @@ class Dialog extends Component {
                 'DialogModal': this.props.modal
             })}>
                 <div className={classNames({
-                    'DialogModalWrap' : this.props.modal
+                    'DialogModalWrap': this.props.modal
                 })}>
                     <div className="DialogHeader">{this.props.header}</div>
                     <div className="DialogBody">{this.props.children}</div>
@@ -31,7 +31,9 @@ class Dialog extends Component {
                         {this.props.hasCancel
                             ? <span
                                 className="DialogDismiss"
-                                onClick={this.props.onAction.bind(this, 'dismiss')}></span>
+                                onClick={this.props.onAction.bind(this, 'dismiss')}>
+                                Cancel
+                            </span>
                             : null
                         }
                         <Button
