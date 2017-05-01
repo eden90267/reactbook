@@ -18,6 +18,10 @@ var _classnames = require('classnames');
 
 var _classnames2 = _interopRequireDefault(_classnames);
 
+var _invariant = require('invariant');
+
+var _invariant2 = _interopRequireDefault(_invariant);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -41,12 +45,14 @@ var Dialog = function (_Component) {
     _createClass(Dialog, [{
         key: 'componentWillUnmount',
         value: function componentWillUnmount() {
+            (0, _invariant2.default)(document.body, 'Messed up document.body');
             document.body.classList.remove('DialogModalOpen');
         }
     }, {
         key: 'componentDidMount',
         value: function componentDidMount() {
             if (this.props.modal) {
+                (0, _invariant2.default)(document.body, 'Messed up document.body');
                 document.body.classList.add('DialogModalOpen');
             }
         }
@@ -99,19 +105,10 @@ var Dialog = function (_Component) {
     return Dialog;
 }(_react.Component);
 
-Dialog.propTypes = {
-    header: _react.PropTypes.string.isRequired,
-    confirmLabel: _react.PropTypes.string,
-    modal: _react.PropTypes.bool,
-    onAction: _react.PropTypes.func,
-    hasCancel: _react.PropTypes.bool
-};
-
 Dialog.defaultProps = {
     confirmLabel: 'ok',
     modal: false,
-    onAction: function onAction() {},
+    onAction: function onAction(action) {},
     hasCancel: true
 };
-
 exports.default = Dialog;

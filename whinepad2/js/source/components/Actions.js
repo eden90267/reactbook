@@ -1,9 +1,15 @@
 /**
  * Created by eden90267 on 2017/4/29.
  */
-import React, {PropTypes} from 'react';
+/* @flow */
 
-const Actions = props =>
+import React from 'react';
+
+type Props = {
+    onAction: Function,
+};
+
+const Actions = (props: Props) =>
     <div className="Actions">
         <span
             tabIndex="0"
@@ -30,10 +36,6 @@ const Actions = props =>
             x
         </span>
     </div>;
-
-Actions.propTypes = {
-    onAction: PropTypes.func
-};
 
 Actions.defaultProps = {
     onAction: () => {

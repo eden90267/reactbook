@@ -4,7 +4,12 @@
 /* @flow */
 
 import classNames from 'classnames';
-import React, {PropTypes} from 'react'; // const PropTypes
+import React from 'react';
+
+type Props = {
+    href?: string,
+    className?: string,
+};
 
 // function Button(props) {
 //     const cssclasses = classNames('Button', props.className);
@@ -19,10 +24,6 @@ import React, {PropTypes} from 'react'; // const PropTypes
 //         ? <a {...props} className={cssclasses}/>
 //         : <button {...props} className={cssclasses}/>
 // }
-type Props = {
-    href: ?string,
-    className: ?string,
-};
 
 const Button = (props: Props) =>
     props.href
@@ -30,8 +31,8 @@ const Button = (props: Props) =>
         : <button {...props} className={classNames('Button', props.className)}/>;
 
 // ES2015類別語法或函式元件，必須將propTypes之類的特性定義成靜態特性，就在元件的定義之後
-Button.propTypes = {
-    href: PropTypes.string,
-};
+// Button.propTypes = {
+//     href: PropTypes.string,
+// };
 
 export default Button

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
     value: true
@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = require("react");
+var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
@@ -24,34 +24,41 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var Suggest = function (_Component) {
     _inherits(Suggest, _Component);
 
-    function Suggest() {
+    function Suggest(props) {
         _classCallCheck(this, Suggest);
 
-        return _possibleConstructorReturn(this, (Suggest.__proto__ || Object.getPrototypeOf(Suggest)).apply(this, arguments));
+        var _this = _possibleConstructorReturn(this, (Suggest.__proto__ || Object.getPrototypeOf(Suggest)).call(this, props));
+
+        _this.state = { value: props.defaultValue || '' };
+        return _this;
     }
 
     _createClass(Suggest, [{
-        key: "getValue",
+        key: 'getValue',
         value: function getValue() {
-            return this.refs.lowlevelinput.value;
+            return this.state.value;
         }
     }, {
-        key: "render",
+        key: 'render',
         value: function render() {
+            var _this2 = this;
+
             var randomid = Math.random().toString(16).substring(2);
             return _react2.default.createElement(
-                "div",
+                'div',
                 null,
-                _react2.default.createElement("input", {
+                _react2.default.createElement('input', {
                     list: randomid,
                     defaultValue: this.props.defaultValue,
-                    ref: "lowlevelinput",
+                    onChange: function onChange(e) {
+                        return _this2.setState({ value: e.target.value });
+                    },
                     id: this.props.id }),
                 _react2.default.createElement(
-                    "datalist",
+                    'datalist',
                     { id: randomid },
                     this.props.options.map(function (item, idx) {
-                        return _react2.default.createElement("option", { value: item, key: idx });
+                        return _react2.default.createElement('option', { value: item, key: idx });
                     })
                 )
             );
@@ -60,9 +67,5 @@ var Suggest = function (_Component) {
 
     return Suggest;
 }(_react.Component);
-
-Suggest.propTypes = {
-    options: _react.PropTypes.arrayOf(_react.PropTypes.string)
-};
 
 exports.default = Suggest;

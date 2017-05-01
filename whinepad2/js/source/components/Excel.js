@@ -3,7 +3,7 @@
  */
 /* @flow */
 
-import React, {Component, PropTypes} from 'react';
+import React, {Component} from 'react';
 
 import classNames from 'classnames';
 import invariant from 'invariant';
@@ -125,6 +125,7 @@ class Excel extends Component {
             dialog: null,
             data: data
         });
+        this._fireDataChange(data);
     }
 
     _closeDialog() {
@@ -202,7 +203,7 @@ class Excel extends Component {
                     ref="form"
                     fields={this.props.schema}
                     initialData={this.state.data[index]}
-                    readonly={readonly}/>
+                    readonly={!!readonly}/>
             </Dialog>
         )
     }

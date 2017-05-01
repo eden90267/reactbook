@@ -1,14 +1,27 @@
 /**
  * Created by eden90267 on 2017/4/29.
  */
+/* @flow */
+
 import FormInput from './FormInput';
 import Rating from './Rating';
-import React, {Component, PropTypes} from 'react';
+import React, {Component} from 'react';
+
+import type {FormInputField, FormInputFieldValue} from './FormInput';
+
+type Props = {
+    fields: Array<FormInputField>,
+    initialData?: Object,
+    readonly?: boolean,
+};
 
 class Form extends Component {
-    getData() {
-        let data = {};
-        this.props.fields.forEach(field =>
+
+    props: Props;
+
+    getData(): Object {
+        let data: Object = {};
+        this.props.fields.forEach((field: FormInputField) =>
             data[field.id] = this.refs[field.id].getValue()
         );
         return data;
@@ -16,8 +29,8 @@ class Form extends Component {
 
     render() {
         return (
-            <form className="Form">{this.props.fields.map(field => {
-                const prefilled = this.props.initialData && this.props.initialData[field.id];
+            <form className="Form">{this.props.fields.map((field: FormInputField) => {
+                const prefilled: FormInputFieldValue = (this.props.initialData && this.props.initialData[field.id]) || '';
                 if (!this.props.readonly) {
                     return (
                         <div className="FormRow" key={field.id}>
@@ -43,16 +56,5 @@ class Form extends Component {
         )
     }
 }
-
-Form.propTypes = {
-    fields: PropTypes.arrayOf(PropTypes.shape({
-        id: PropTypes.string.isRequired,
-        label: PropTypes.string.isRequired,
-        type: PropTypes.string,
-        options: PropTypes.arrayOf(PropTypes.string),
-    })).isRequired,
-    initialData: PropTypes.object,
-    readonly: PropTypes.bool
-};
 
 export default Form

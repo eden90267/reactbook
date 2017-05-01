@@ -16,6 +16,10 @@ var _classnames = require('classnames');
 
 var _classnames2 = _interopRequireDefault(_classnames);
 
+var _invariant = require('invariant');
+
+var _invariant2 = _interopRequireDefault(_invariant);
+
 var _Actions = require('./Actions');
 
 var _Actions2 = _interopRequireDefault(_Actions);
@@ -94,10 +98,11 @@ var Excel = function (_Component) {
     }, {
         key: '_showEditor',
         value: function _showEditor(e) {
+            var target = e.target;
             this.setState({
                 edit: {
-                    row: parseInt(e.target.dataset.row, 10),
-                    key: e.target.dataset.key
+                    row: parseInt(target.dataset.row, 10),
+                    key: target.dataset.key
                 }
             });
         }
@@ -107,6 +112,7 @@ var Excel = function (_Component) {
             e.preventDefault();
             var value = this.refs.input.getValue();
             var data = Array.from(this.state.data);
+            (0, _invariant2.default)(this.state.edit, 'Messed up edit state');
             data[this.state.edit.row][this.state.edit.key] = value;
             this.setState({
                 edit: null,
@@ -132,7 +138,9 @@ var Excel = function (_Component) {
                 return;
             }
             var data = Array.from(this.state.data);
-            data.splice(this.state.dialog.idx, 1);
+            var index = this.state.dialog ? this.state.dialog.idx : null;
+            (0, _invariant2.default)(typeof index === 'number', 'Unexpected dialog state');
+            data.splice(index, 1);
             this.setState({
                 dialog: null,
                 data: data
@@ -151,7 +159,9 @@ var Excel = function (_Component) {
                 return;
             }
             var data = Array.from(this.state.data);
-            data[this.state.dialog.idx] = this.refs.form.getData();
+            var index = this.state.dialog ? this.state.dialog.idx : null;
+            (0, _invariant2.default)(typeof index === 'number', 'Unexpected dialog state');
+            data[index] = this.refs.form.getData();
             this.setState({
                 dialog: null,
                 data: data
@@ -188,7 +198,9 @@ var Excel = function (_Component) {
     }, {
         key: '_renderDeleteDialog',
         value: function _renderDeleteDialog() {
-            var first = this.state.data[this.state.dialog.idx];
+            var index = this.state.dialog ? this.state.dialog.idx : null;
+            (0, _invariant2.default)(typeof index === 'number', 'Unexpected dialog state');
+            var first = this.state.data[index];
             var nameguess = first[Object.keys(first)[0]];
             return _react2.default.createElement(
                 _Dialog2.default,
@@ -203,6 +215,8 @@ var Excel = function (_Component) {
     }, {
         key: '_renderFormDialog',
         value: function _renderFormDialog(readonly) {
+            var index = this.state.dialog ? this.state.dialog.idx : null;
+            (0, _invariant2.default)(typeof index === 'number', 'Unexpected dialog state');
             return _react2.default.createElement(
                 _Dialog2.default,
                 {
@@ -214,8 +228,8 @@ var Excel = function (_Component) {
                 _react2.default.createElement(_Form2.default, {
                     ref: 'form',
                     fields: this.props.schema,
-                    initialData: this.state.data[this.state.dialog.idx],
-                    readonly: readonly })
+                    initialData: this.state.data[index],
+                    readonly: !!readonly })
             );
         }
     }, {
@@ -306,11 +320,5 @@ var Excel = function (_Component) {
 
     return Excel;
 }(_react.Component);
-
-Excel.propTypes = {
-    schema: _react.PropTypes.arrayOf(_react.PropTypes.object),
-    initialData: _react.PropTypes.arrayOf(_react.PropTypes.object),
-    onDataChange: _react.PropTypes.func
-};
 
 exports.default = Excel;

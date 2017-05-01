@@ -1,4 +1,3 @@
-
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -74,12 +73,5 @@ var FormInput = function (_Component) {
 
     return FormInput;
 }(_react.Component);
-
-FormInput.propTypes = {
-    type: _react.PropTypes.oneOf(['year', 'suggest', 'rating', 'text', 'input']),
-    id: _react.PropTypes.string,
-    options: _react.PropTypes.array,
-    defaultValue: _react.PropTypes.any
-};
 
 exports.default = FormInput;

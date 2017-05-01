@@ -1,12 +1,32 @@
 /**
  * Created by eden90267 on 2017/4/29.
  */
-import React, {Component, PropTypes} from 'react';
+/* @flow */
+
+import React, {Component} from 'react';
+
+type Props = {
+    id?: string,
+    defaultValue?: string,
+    options: Array<string>
+}
+
+type State = {
+    value: string,
+}
 
 class Suggest extends Component {
 
-    getValue() {
-        return this.refs.lowlevelinput.value;
+    props: Props;
+    state: State;
+
+    constructor(props: Props) {
+        super(props);
+        this.state = {value: props.defaultValue || ''};
+    }
+
+    getValue(): string {
+        return this.state.value;
     }
 
     render() {
@@ -16,7 +36,7 @@ class Suggest extends Component {
                 <input
                     list={randomid}
                     defaultValue={this.props.defaultValue}
-                    ref="lowlevelinput"
+                    onChange={e => this.setState({value: e.target.value})}
                     id={this.props.id}/>
                 <datalist id={randomid}>{
                     this.props.options.map((item, idx) =>
@@ -27,9 +47,5 @@ class Suggest extends Component {
         );
     }
 }
-
-Suggest.propTypes = {
-    options: PropTypes.arrayOf(PropTypes.string),
-};
 
 export default Suggest

@@ -49,7 +49,6 @@ var Whinepad = function (_Component) {
             data: props.initialData,
             addnew: false
         };
-        _this._preSearchData = null;
         return _this;
     }
 
@@ -99,7 +98,8 @@ var Whinepad = function (_Component) {
     }, {
         key: '_search',
         value: function _search(e) {
-            var needle = e.target.value.toLowerCase();
+            var target = e.target;
+            var needle = target.value.toLowerCase();
             if (!needle) {
                 this.setState({ data: this._preSearchData });
                 return;
@@ -170,10 +170,5 @@ var Whinepad = function (_Component) {
 
     return Whinepad;
 }(_react.Component);
-
-Whinepad.propTypes = {
-    schema: _react.PropTypes.arrayOf(_react.PropTypes.object),
-    initialData: _react.PropTypes.arrayOf(_react.PropTypes.object)
-};
 
 exports.default = Whinepad;

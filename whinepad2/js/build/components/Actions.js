@@ -50,10 +50,6 @@ var Actions = function Actions(props) {
     */
 
 
-Actions.propTypes = {
-    onAction: _react.PropTypes.func
-};
-
 Actions.defaultProps = {
     onAction: function onAction() {}
 };

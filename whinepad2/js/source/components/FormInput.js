@@ -4,7 +4,7 @@
 /* @flow */
 
 import Rating from './Rating';
-import React, {Component, PropTypes} from 'react';
+import React, {Component} from 'react';
 import Suggest from './Suggest';
 
 type FormInputFieldType = 'year' | 'suggest' | 'rating' | 'rating' | 'text' | 'input';
@@ -12,7 +12,7 @@ type FormInputFieldType = 'year' | 'suggest' | 'rating' | 'rating' | 'text' | 'i
 export type FormInputFieldValue = string | number;
 
 export type FormInputField = {
-    type: FormInputField,
+    type?: FormInputFieldType,
     defaultValue?: FormInputFieldValue,
     id?: string,
     options?: Array<string>,

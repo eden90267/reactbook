@@ -1,6 +1,8 @@
 /**
  * Created by eden90267 on 2017/4/29.
  */
+/* @flow */
+
 export default {
     grapes: [
         'Baco Noir',

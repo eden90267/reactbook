@@ -19,8 +19,6 @@ var _react2 = _interopRequireDefault(_react);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// const PropTypes
-
 // function Button(props) {
 //     const cssclasses = classNames('Button', props.className);
 //     //
@@ -34,13 +32,14 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 //         ? <a {...props} className={cssclasses}/>
 //         : <button {...props} className={cssclasses}/>
 // }
+
 var Button = function Button(props) {
     return props.href ? _react2.default.createElement('a', _extends({}, props, { className: (0, _classnames2.default)('Button', props.className) })) : _react2.default.createElement('button', _extends({}, props, { className: (0, _classnames2.default)('Button', props.className) }));
 };
 
 // ES2015類別語法或函式元件，必須將propTypes之類的特性定義成靜態特性，就在元件的定義之後
-Button.propTypes = {
-    href: _react.PropTypes.string
-};
+// Button.propTypes = {
+//     href: PropTypes.string,
+// };
 
 exports.default = Button;

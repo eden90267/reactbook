@@ -1,17 +1,42 @@
 /**
  * Created by eden90267 on 2017/4/29.
  */
+/* @flow */
+
 import Button from './Button';
-import React, {Component, PropTypes} from 'react';
+import React, {Component} from 'react';
 import classNames from 'classnames';
+import invariant from 'invariant';
+
+type Props = {
+    header: string,
+    confirmLabel: string,
+    modal: boolean,
+    onAction: Function,
+    hasCancel: ?boolean,
+    children?: Array<any>,
+};
 
 class Dialog extends Component {
+
+    props: Props;
+
+    static defaultProps = {
+        confirmLabel: 'ok',
+        modal: false,
+        onAction: (action: string) => {
+        },
+        hasCancel: true,
+    };
+
     componentWillUnmount() {
+        invariant(document.body, 'Messed up document.body');
         document.body.classList.remove('DialogModalOpen');
     }
 
     componentDidMount() {
         if (this.props.modal) {
+            invariant(document.body, 'Messed up document.body');
             document.body.classList.add('DialogModalOpen');
         }
     }
@@ -47,21 +72,5 @@ class Dialog extends Component {
         );
     }
 }
-
-Dialog.propTypes = {
-    header: PropTypes.string.isRequired,
-    confirmLabel: PropTypes.string,
-    modal: PropTypes.bool,
-    onAction: PropTypes.func,
-    hasCancel: PropTypes.bool
-};
-
-Dialog.defaultProps = {
-    confirmLabel: 'ok',
-    modal: false,
-    onAction: () => {
-    },
-    hasCancel: true,
-};
 
 export default Dialog

@@ -60,7 +60,7 @@ var Form = function (_Component) {
                 'form',
                 { className: 'Form' },
                 this.props.fields.map(function (field) {
-                    var prefilled = _this3.props.initialData && _this3.props.initialData[field.id];
+                    var prefilled = _this3.props.initialData && _this3.props.initialData[field.id] || '';
                     if (!_this3.props.readonly) {
                         return _react2.default.createElement(
                             'div',
@@ -98,16 +98,5 @@ var Form = function (_Component) {
 
     return Form;
 }(_react.Component);
-
-Form.propTypes = {
-    fields: _react.PropTypes.arrayOf(_react.PropTypes.shape({
-        id: _react.PropTypes.string.isRequired,
-        label: _react.PropTypes.string.isRequired,
-        type: _react.PropTypes.string,
-        options: _react.PropTypes.arrayOf(_react.PropTypes.string)
-    })).isRequired,
-    initialData: _react.PropTypes.object,
-    readonly: _react.PropTypes.bool
-};
 
 exports.default = Form;

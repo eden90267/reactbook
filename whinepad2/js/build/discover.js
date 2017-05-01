@@ -250,6 +250,15 @@ _reactDom2.default.render(_react2.default.createElement(
     _react2.default.createElement(
         'h2',
         null,
+        'Form readonly'
+    ),
+    _react2.default.createElement(_Form2.default, {
+        fields: [{ label: 'Rating', type: 'rating', id: 'rateme' }, { label: 'Greetings', id: 'freetext' }],
+        initialData: { rateme: 4, freetext: 'Hello' },
+        readonly: true }),
+    _react2.default.createElement(
+        'h2',
+        null,
         'Actions'
     ),
     _react2.default.createElement(

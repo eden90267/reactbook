@@ -1,6 +1,8 @@
 /**
  * Created by eden90267 on 2017/4/28.
  */
+/* @flow */
+
 'use strict';
 
 import Button from './components/Button';
@@ -79,6 +81,15 @@ ReactDOM.render(
                 {label: 'Greetings', id: 'freetext'}
             ]}
             initialData={{rateme: 4, freetext: 'Hello'}}/>
+
+        <h2>Form readonly</h2>
+        <Form
+            fields={[
+                {label: 'Rating', type: 'rating', id: 'rateme'},
+                {label: 'Greetings', id: 'freetext'}
+            ]}
+            initialData={{rateme: 4, freetext: 'Hello'}}
+            readonly={true}/>
 
         <h2>Actions</h2>
         <div><Actions onAction={type => alert(type)}/></div>
