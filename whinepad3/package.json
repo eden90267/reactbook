@@ -125,6 +125,7 @@
     "babel-preset-stage-0": "^6.24.1",
     "classnames": "^2.2.5",
     "cssshrink": "0.0.5",
+    "fbemitter": "^2.1.1",
     "invariant": "^2.2.2",
     "react": "^15.0.2",
     "react-dom": "^15.0.2",
