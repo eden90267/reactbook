@@ -4,8 +4,9 @@
 /* @flow */
 
 import {EventEmitter} from 'fbemitter';
+import {List} from 'immutable';
 
-let data;
+let data: List<Object>;
 let schema;
 const emitter = new EventEmitter();
 
@@ -16,16 +17,17 @@ const CRUDStore = {
             ? localStorage.getItem('data')
             : null;
         if (!storage) {
-            data = [{}];
-            schema.forEach(item => data[0][item.id] = item.sample);
+            let initialRecord = {};
+            schema.forEach(item => initialRecord[item.id] = item.sample);
+            data = List([initialRecord]);
         } else {
-            data = JSON.parse(storage);
+            data = List(JSON.parse(storage));
         }
     },
-    getData(): Array<Object> {
+    getData(): List<Object> {
         return data;
     },
-    setDate(newData: Array<Object>, commit: boolean = true) {
+    setData(newData: List<Object>, commit: boolean = true) {
         data = newData;
         if (commit && 'localStorage' in window) {
             localStorage.setItem('data', JSON.stringify(newData));
@@ -36,10 +38,10 @@ const CRUDStore = {
         return schema;
     },
     getCount(): number {
-        return data.length;
+        return data.count(); // 'data.size'也可以
     },
     getRecord(recordId: number): ?Object {
-        return recordId in data ? data[recordId] : null;
+        return data.get(recordId);
     },
     addListener(eventType: string, fn: Function) {
         emitter.addListener(eventType, fn);

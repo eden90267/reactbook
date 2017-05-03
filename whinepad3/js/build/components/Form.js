@@ -8,6 +8,14 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+var _CRUDStore = require('../flux/CRUDStore');
+
+var _CRUDStore2 = _interopRequireDefault(_CRUDStore);
+
 var _FormInput = require('./FormInput');
 
 var _FormInput2 = _interopRequireDefault(_FormInput);
@@ -15,10 +23,6 @@ var _FormInput2 = _interopRequireDefault(_FormInput);
 var _Rating = require('./Rating');
 
 var _Rating2 = _interopRequireDefault(_Rating);
-
-var _react = require('react');
-
-var _react2 = _interopRequireDefault(_react);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -34,10 +38,16 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var Form = function (_Component) {
     _inherits(Form, _Component);
 
-    function Form() {
+    function Form(props) {
         _classCallCheck(this, Form);
 
-        return _possibleConstructorReturn(this, (Form.__proto__ || Object.getPrototypeOf(Form)).apply(this, arguments));
+        var _this = _possibleConstructorReturn(this, (Form.__proto__ || Object.getPrototypeOf(Form)).call(this, props));
+
+        _this.fields = _CRUDStore2.default.getSchema();
+        if ('recordId' in _this.props) {
+            _this.initialData = _CRUDStore2.default.getRecord(_this.props.recordId);
+        }
+        return _this;
     }
 
     _createClass(Form, [{
@@ -46,7 +56,7 @@ var Form = function (_Component) {
             var _this2 = this;
 
             var data = {};
-            this.props.fields.forEach(function (field) {
+            this.fields.forEach(function (field) {
                 return data[field.id] = _this2.refs[field.id].getValue();
             });
             return data;
@@ -59,8 +69,8 @@ var Form = function (_Component) {
             return _react2.default.createElement(
                 'form',
                 { className: 'Form' },
-                this.props.fields.map(function (field) {
-                    var prefilled = _this3.props.initialData && _this3.props.initialData[field.id] || '';
+                this.fields.map(function (field) {
+                    var prefilled = _this3.initialData && _this3.initialData[field.id] || '';
                     if (!_this3.props.readonly) {
                         return _react2.default.createElement(
                             'div',

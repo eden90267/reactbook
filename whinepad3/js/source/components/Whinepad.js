@@ -6,18 +6,13 @@
 import React, {Component} from 'react';
 
 import CRUDStore from '../flux/CRUDStore';
+import CRUDActions from '../flux/CRUDActions';
 
 import Button from './Button';
 import Dialog from './Dialog';
 import Excel from './Excel';
 import Form from './Form';
 
-
-type Data = Array<Object>;
-
-type Props = {
-    schema: Array<Object>,
-}
 
 type State = {
     addnew: boolean,
@@ -26,12 +21,10 @@ type State = {
 
 class Whinepad extends Component {
 
-    props: Props;
     state: State;
-    _preSearchData: Data;
 
-    constructor(props: Props) {
-        super(props);
+    constructor() {
+        super();
         this.state = {
             addnew: false,
             count: CRUDStore.getCount(),
@@ -56,55 +49,10 @@ class Whinepad extends Component {
     }
 
     _addNew(action: string) {
-        if (action === 'dismiss') {
-            this.setState({addnew: false});
-            return;
+        this.setState({addnew: false});
+        if (action === 'confirm') {
+            CRUDActions.create(this.refs.form.getData());
         }
-        let data = Array.from(this.state.data);
-        data.unshift(this.refs.form.getData());
-        this.setState({
-            addnew: false,
-            data: data,
-        });
-        this._commitToStorage(data);
-    }
-
-    _onExcelDataChange(data: Data) {
-        this.setState({data: data});
-        this._commitToStorage(data);
-    }
-
-    _commitToStorage(data: Data) {
-        localStorage.setItem('data', JSON.stringify(data));
-    }
-
-    _startSearching() {
-        this._preSearchData = this.state.data;
-    }
-
-    _doneSearching() {
-        this.setState({
-            data: this._preSearchData,
-        });
-    }
-
-    _search(e: Event) {
-        const target = ((e.target: any): HTMLInputElement);
-        const needle = target.value.toLowerCase();
-        if (!needle) {
-            this.setState({data: this._preSearchData});
-            return;
-        }
-        const fields = this.props.schema.map(item => item.id);
-        const searchData = this._preSearchData.filter(row => {
-            for (let f = 0; f < fields.length; f++) {
-                if (row[fields[f]].toString().toLowerCase().indexOf(needle) > -1) {
-                    return true;
-                }
-            }
-            return false;
-        });
-        this.setState({data: searchData});
     }
 
     render() {
@@ -124,9 +72,8 @@ class Whinepad extends Component {
                                 ? 'Search 1 record...'
                                 : `Search ${this.state.count} records...`
                             }
-                            onChange={this._search.bind(this)}
-                            onFocus={this._startSearching.bind(this)}
-                            onBlur={this._doneSearching.bind(this)}/>
+                            onChange={CRUDActions.search.bind(this)}
+                            onFocus={CRUDActions.startSearching.bind(this)}/>
                     </div>
                     <div className="WhinepadDatagrid">
                         <Excel />
@@ -136,10 +83,11 @@ class Whinepad extends Component {
                             ?
                             <Dialog
                                 modal={true}
-                                header="Add new item" confirmLabel="Add" onAction={this._addNew.bind(this)}>
-                                <Form
-                                    ref="form"
-                                    fields={this.props.schema}/>
+                                header="Add new item"
+                                confirmLabel="Add"
+                                onAction={this._addNew.bind(this)}
+                            >
+                                <Form ref="form"/>
                             </Dialog>
                             : null
                     }

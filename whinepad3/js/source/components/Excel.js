@@ -7,22 +7,16 @@ import React, {Component} from 'react';
 
 import classNames from 'classnames';
 import invariant from 'invariant';
+import * as Immutable from 'immutable';
 
 import CRUDStore from '../flux/CRUDStore';
+import CRUDActions from '../flux/CRUDActions';
 
 import Actions from './Actions';
 import Dialog from './Dialog';
 import Form from './Form';
 import FormInput from './FormInput';
 import Rating from './Rating';
-
-type Data = Array<Object>;
-
-type Props = {
-    schema: Array<Object>,
-    initialData: Data,
-    onDataChange: Function,
-};
 
 type EditState = {
     row: number,
@@ -35,7 +29,7 @@ type DialogState = {
 };
 
 type State = {
-    data: Data,
+    data: Immutable.List<Object>,
     sortby: ?string,
     descending: boolean,
     edit: ?EditState,
@@ -44,8 +38,8 @@ type State = {
 
 class Excel extends Component {
 
-    props: Props;
     state: State;
+    schema: Array<Object>;
 
     constructor() {
         super();
@@ -64,28 +58,13 @@ class Excel extends Component {
         });
     }
 
-    componentWillReceiveProps(nextProps: Props) {
-        this.setState({data: nextProps.initialData});
-    }
-
-    _fireDataChange(data: Data) {
-        this.props.onDataChange(data);
-    }
-
     _sort(key: string) {
-        let data = Array.from(this.state.data);
         const descending = this.state.sortby === key && !this.state.descending;
-        data.sort(function (a, b) {
-            return descending
-                ? (a[key] < b[key] ? 1 : -1)
-                : (a[key] > b[key] ? 1 : -1);
-        });
+        CRUDActions.sort(key, descending);
         this.setState({
-            data: data,
             sortby: key,
             descending: descending,
         });
-        this._fireDataChange(data);
     }
 
     _showEditor(e: Event) {
@@ -100,15 +79,15 @@ class Excel extends Component {
 
     _save(e: Event) {
         e.preventDefault();
-        const value = this.refs.input.getValue();
-        let data = Array.from(this.state.data);
         invariant(this.state.edit, 'Messed up edit state');
-        data[this.state.edit.row][this.state.edit.key] = value;
+        CRUDActions.updateField(
+            this.state.edit.row,
+            this.state.edit.key,
+            this.refs.input.getValue()
+        );
         this.setState({
             edit: null,
-            data: data,
         });
-        this._fireDataChange(data);
     }
 
     _actionClick(rowidx: number, action: string) {
@@ -121,39 +100,23 @@ class Excel extends Component {
     }
 
     _deleteConfirmationClick(action: string) {
+        this.setState({dialog: null});
         if (action === 'dismiss') {
-            this._closeDialog();
             return;
         }
-        let data = Array.from(this.state.data);
         const index = this.state.dialog ? this.state.dialog.idx : null;
         invariant(typeof index === 'number', 'Unexpected dialog state');
-        data.splice(index, 1);
-        this.setState({
-            dialog: null,
-            data: data,
-        });
-        this._fireDataChange(data);
-    }
-
-    _closeDialog() {
-        this.setState({dialog: null});
+        CRUDActions.delete(index);
     }
 
     _saveDataDialog(action: string) {
+        this.setState({dialog: null});
         if (action === 'dismiss') {
-            this._closeDialog();
             return;
         }
-        let data = Array.from(this.state.data);
         const index = this.state.dialog ? this.state.dialog.idx : null;
         invariant(typeof index === 'number', 'Unexpected dialog state');
-        data[index] = this.refs.form.getData();
-        this.setState({
-            dialog: null,
-            data: data,
-        });
-        this._fireDataChange(data);
+        CRUDActions.updateRecord(index, this.refs.form.getData());
     }
 
     render() {
@@ -182,9 +145,9 @@ class Excel extends Component {
     }
 
     _renderDeleteDialog() {
-        const index = this.state.dialog ? this.state.dialog.idx : null;
+        const index = this.state.dialog && this.state.dialog.idx;
         invariant(typeof index === 'number', 'Unexpected dialog state');
-        const first = this.state.data[index];
+        const first = this.state.data.get(index);
         const nameguess = first[Object.keys(first)[0]];
         return (
             <Dialog
@@ -209,8 +172,7 @@ class Excel extends Component {
                 onAction={this._saveDataDialog.bind(this)}>
                 <Form
                     ref="form"
-                    fields={this.schema}
-                    initialData={this.state.data[index]}
+                    recordId={index}
                     readonly={!!readonly}/>
             </Dialog>
         )

@@ -8,19 +8,15 @@ import TestUtils from 'react-dom/test-utils';
 
 const Excel = require('../source/components/Excel').default;
 const schema = require('../source/schema').default;
+const Store = require('../source/flux/CRUDStore').default;
 
-let data = [{}];
-schema.forEach(item => data[0][item.id] = item.sample);
+Store.init(schema);
 
 describe('Editing data', () => {
     it('saves new data', () => {
         /* .. 渲染、互動、檢視 */
-        const callback = jest.genMockFunction();
         const table = TestUtils.renderIntoDocument(
-            <Excel
-                schema={schema}
-                initialData={data}
-                onDataChange={callback}/>
+            <Excel />
         );
         const newname = '$2.99 chunk';
         const cell = TestUtils.scryRenderedDOMComponentsWithTag(table, 'td')[0];
@@ -31,17 +27,11 @@ describe('Editing data', () => {
         TestUtils.Simulate.doubleClick(cell);
         cell.getElementsByTagName('input')[0].value = newname;
         TestUtils.Simulate.submit(cell.getElementsByTagName('form')[0]);
-
         expect(cell.textContent).toBe(newname);
-        expect(callback.mock.calls[0][0][0].name).toBe(newname);
     });
     it('deletes data', () => {
-        const callback = jest.genMockFunction();
         const table = TestUtils.renderIntoDocument(
-            <Excel
-                schema={schema}
-                initialData={data}
-                onDataChange={callback}/>
+            <Excel />
         );
 
         TestUtils.Simulate.click( // x icon
@@ -53,6 +43,6 @@ describe('Editing data', () => {
         );
 
         // console.log(callback.mock.calls);
-        expect(callback.mock.calls[0][0].length).toBe(0); // 互動之後的新資料陣列，一個都不剩了，因刪除了唯一一筆紀錄。
+        expect(TestUtils.scryRenderedDOMComponentsWithTag(table, 'td').length).toBe(0); // 互動之後的新資料陣列，一個都不剩了，因刪除了唯一一筆紀錄。
     });
 });

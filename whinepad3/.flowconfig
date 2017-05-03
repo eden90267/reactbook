@@ -8,6 +8,7 @@ node_modules/react-dom
 node_modules/classnames
 node_modules/fbemitter
 node_modules/invariant
+node_modules/immutable
 
 [libs]
 

@@ -108,7 +108,7 @@ var Dialog = function (_Component) {
 Dialog.defaultProps = {
     confirmLabel: 'ok',
     modal: false,
-    onAction: function onAction(action) {},
+    onAction: function onAction(_) {},
     hasCancel: true
 };
 exports.default = Dialog;

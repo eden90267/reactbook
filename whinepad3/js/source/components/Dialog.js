@@ -24,7 +24,7 @@ class Dialog extends Component {
     static defaultProps = {
         confirmLabel: 'ok',
         modal: false,
-        onAction: (action: string) => {
+        onAction: (_) => {
         },
         hasCancel: true,
     };

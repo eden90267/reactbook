@@ -74,4 +74,7 @@ var FormInput = function (_Component) {
     return FormInput;
 }(_react.Component);
 
+FormInput.defaultProps = {
+    type: 'input'
+};
 exports.default = FormInput;

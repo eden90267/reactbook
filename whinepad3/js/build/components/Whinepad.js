@@ -14,6 +14,10 @@ var _CRUDStore = require('../flux/CRUDStore');
 
 var _CRUDStore2 = _interopRequireDefault(_CRUDStore);
 
+var _CRUDActions = require('../flux/CRUDActions');
+
+var _CRUDActions2 = _interopRequireDefault(_CRUDActions);
+
 var _Button = require('./Button');
 
 var _Button2 = _interopRequireDefault(_Button);
@@ -44,10 +48,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var Whinepad = function (_Component) {
     _inherits(Whinepad, _Component);
 
-    function Whinepad(props) {
+    function Whinepad() {
         _classCallCheck(this, Whinepad);
 
-        var _this = _possibleConstructorReturn(this, (Whinepad.__proto__ || Object.getPrototypeOf(Whinepad)).call(this, props));
+        var _this = _possibleConstructorReturn(this, (Whinepad.__proto__ || Object.getPrototypeOf(Whinepad)).call(this));
 
         _this.state = {
             addnew: false,
@@ -75,62 +79,10 @@ var Whinepad = function (_Component) {
     }, {
         key: '_addNew',
         value: function _addNew(action) {
-            if (action === 'dismiss') {
-                this.setState({ addnew: false });
-                return;
+            this.setState({ addnew: false });
+            if (action === 'confirm') {
+                _CRUDActions2.default.create(this.refs.form.getData());
             }
-            var data = Array.from(this.state.data);
-            data.unshift(this.refs.form.getData());
-            this.setState({
-                addnew: false,
-                data: data
-            });
-            this._commitToStorage(data);
-        }
-    }, {
-        key: '_onExcelDataChange',
-        value: function _onExcelDataChange(data) {
-            this.setState({ data: data });
-            this._commitToStorage(data);
-        }
-    }, {
-        key: '_commitToStorage',
-        value: function _commitToStorage(data) {
-            localStorage.setItem('data', JSON.stringify(data));
-        }
-    }, {
-        key: '_startSearching',
-        value: function _startSearching() {
-            this._preSearchData = this.state.data;
-        }
-    }, {
-        key: '_doneSearching',
-        value: function _doneSearching() {
-            this.setState({
-                data: this._preSearchData
-            });
-        }
-    }, {
-        key: '_search',
-        value: function _search(e) {
-            var target = e.target;
-            var needle = target.value.toLowerCase();
-            if (!needle) {
-                this.setState({ data: this._preSearchData });
-                return;
-            }
-            var fields = this.props.schema.map(function (item) {
-                return item.id;
-            });
-            var searchData = this._preSearchData.filter(function (row) {
-                for (var f = 0; f < fields.length; f++) {
-                    if (row[fields[f]].toString().toLowerCase().indexOf(needle) > -1) {
-                        return true;
-                    }
-                }
-                return false;
-            });
-            this.setState({ data: searchData });
         }
     }, {
         key: 'render',
@@ -157,9 +109,8 @@ var Whinepad = function (_Component) {
                         { className: 'WhinepadToolbarSearch' },
                         _react2.default.createElement('input', {
                             placeholder: this.state.count === 1 ? 'Search 1 record...' : 'Search ' + this.state.count + ' records...',
-                            onChange: this._search.bind(this),
-                            onFocus: this._startSearching.bind(this),
-                            onBlur: this._doneSearching.bind(this) })
+                            onChange: _CRUDActions2.default.search.bind(this),
+                            onFocus: _CRUDActions2.default.startSearching.bind(this) })
                     ),
                     _react2.default.createElement(
                         'div',
@@ -170,10 +121,11 @@ var Whinepad = function (_Component) {
                         _Dialog2.default,
                         {
                             modal: true,
-                            header: 'Add new item', confirmLabel: 'Add', onAction: this._addNew.bind(this) },
-                        _react2.default.createElement(_Form2.default, {
-                            ref: 'form',
-                            fields: this.props.schema })
+                            header: 'Add new item',
+                            confirmLabel: 'Add',
+                            onAction: this._addNew.bind(this)
+                        },
+                        _react2.default.createElement(_Form2.default, { ref: 'form' })
                     ) : null
                 )
             );

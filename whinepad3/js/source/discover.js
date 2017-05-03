@@ -5,6 +5,12 @@
 
 'use strict';
 
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+import CRUDStore from './flux/CRUDStore';
+import schema from './schema';
+
 import Button from './components/Button';
 import Logo from './components/Logo';
 import Suggest from './components/Suggest';
@@ -14,9 +20,7 @@ import Form from './components/Form';
 import Actions from './components/Actions';
 import Dialog from './components/Dialog';
 
-import React from 'react';
-import ReactDOM from 'react-dom';
-
+CRUDStore.init(schema);
 
 ReactDOM.render(
     <div style={ {padding: '20px'} }>

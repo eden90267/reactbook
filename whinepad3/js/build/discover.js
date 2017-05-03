@@ -3,6 +3,22 @@
  */
 'use strict';
 
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactDom = require('react-dom');
+
+var _reactDom2 = _interopRequireDefault(_reactDom);
+
+var _CRUDStore = require('./flux/CRUDStore');
+
+var _CRUDStore2 = _interopRequireDefault(_CRUDStore);
+
+var _schema = require('./schema');
+
+var _schema2 = _interopRequireDefault(_schema);
+
 var _Button = require('./components/Button');
 
 var _Button2 = _interopRequireDefault(_Button);
@@ -35,15 +51,9 @@ var _Dialog = require('./components/Dialog');
 
 var _Dialog2 = _interopRequireDefault(_Dialog);
 
-var _react = require('react');
-
-var _react2 = _interopRequireDefault(_react);
-
-var _reactDom = require('react-dom');
-
-var _reactDom2 = _interopRequireDefault(_reactDom);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_CRUDStore2.default.init(_schema2.default);
 
 _reactDom2.default.render(_react2.default.createElement(
     'div',
